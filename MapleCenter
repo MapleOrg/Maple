@@ -306,30 +306,40 @@ interface Welfare {
    function withdrawBNB() external ;
    function updateSocialSecurity( address _address) external ;
    function updateBonusVault( address _address) external ;
-    
 }    
 
-contract WelfareCommandCenter {
+interface BonusVault {
+    function updateWelfareAddress( address _welfarecontract   ) external;
+    function updateSSAddress( address _socialsecuritycontract ) external;
+    function approve() external;
+}
+
+interface SocialSecurity {
+    function updateWelfareAddress( address _welfarecontract   ) external;
+    function updateBonusVault( address _bonusvaultcontract ) external;
+    
+}
+
+contract WelfareCommandCenter is Ownable{
 
     address public welfarecontract;
     address public socialsecuritycontract;
     address public bonusvault;
-    
-    address public switch = 0;
+    uint8 public lever = 0;
 
    
-    function updateWelfareAddress( address _comrade ) onlyOwner  {
-        require( switch == 0);
+    function updateWelfareAddress( address _comrade ) public onlyOwner  {
+        require( lever == 0);
         welfarecontract = _comrade;
     }
     
-    function updateSSAddress( address _socialsecurity ) onlyOwner  {
-        require( switch == 0);
+    function updateSSAddress( address _socialsecurity ) public onlyOwner  {
+        require( lever == 0);
         socialsecuritycontract = _socialsecurity;
     }
     
-    function updateBonusVaultAddress( address _bonusvault ) onlyOwner  {
-       require( switch == 0);
+    function updateBonusVaultAddress( address _bonusvault ) public onlyOwner  {
+       require( lever == 0);
         bonusvault = _bonusvault;
     }
     
@@ -354,11 +364,23 @@ contract WelfareCommandCenter {
         
     }
     
-    function updateAddresses () public onlyOwner {
+    function initialize () public onlyOwner {
         
         Welfare welfare = Welfare( welfarecontract);
         welfare.updateSocialSecurity( socialsecuritycontract);
         welfare.updateBonusVault( bonusvault);
+        
+        BonusVault _bonusvault = BonusVault( bonusvault);
+        _bonusvault.updateWelfareAddress(  welfarecontract);
+        _bonusvault.updateSSAddress( socialsecuritycontract );
+        _bonusvault.approve();
+        
+        
+        SocialSecurity ss = SocialSecurity( socialsecuritycontract );
+        ss.updateWelfareAddress( welfarecontract );
+        ss.updateBonusVault( bonusvault);
+        
+        approve();
         
     }
     
