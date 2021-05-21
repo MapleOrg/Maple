@@ -313,34 +313,47 @@ interface ComradeCommandCenter {
     
 }
 
-contract BonusVault {
+contract BonusVault is Ownable{
 
     address public welfarecontract;
     address public socialsecuritycontract;
+    address public ComradeCommandCenterAddress;
 
 
     constructor() {
         
-        address _ComradeCommandCenter = 0x511C8fE08f1662FED7B02f62f6f2db4ED735c84a;
-        ComradeCommandCenter ccc = ComradeCommandCenter(_ComradeCommandCenter); 
-        ccc.updateBonusVaultAddress( address(this));   
+        ComradeCommandCenterAddress = 0x511C8fE08f1662FED7B02f62f6f2db4ED735c84a;
+        updateBonusVaultAddress ();
     }
    
-    function updateWelfareAddress( address _comrade ) public {
+    function updateWelfareAddress( address _comrade ) public  onlyCommandCenter{
         welfarecontract = _comrade;
     }
     
-    function updateSSAddress( address _socialsecurity ) public {
+    function updateSSAddress( address _socialsecurity ) public onlyCommandCenter {
         socialsecuritycontract = _socialsecurity;
     }
     
+    function updateBonusVaultAddress() public onlyOwner {
+        ComradeCommandCenter ccc = ComradeCommandCenter(ComradeCommandCenterAddress); 
+        ccc.updateBonusVaultAddress( address(this));   
+    }
       
+    function updateCommandCenter( address _comandcenteraddress ) public  onlyOwner{
+        ComradeCommandCenterAddress = _comandcenteraddress;
+    }  
     
     
-    function approve() public {
+    function approve() public  onlyCommandCenter {
         IERC20 token = IERC20( welfarecontract ); 
         token.approve ( socialsecuritycontract, 999999999999999999999 );
         
+    }
+    
+    
+     modifier onlyCommandCenter() {
+        require( ComradeCommandCenterAddress == _msgSender(), "Ownable: caller is not the owner");
+        _;
     }
     
    
